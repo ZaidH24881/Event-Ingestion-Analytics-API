@@ -171,9 +171,6 @@ The demo shows how to integrate event tracking into a website, similar to how yo
 - [ ] PostgreSQL deployment
 - [ ] Real-time dashboards
 
-## 🤝 Contributing
-
-This is a learning project built to understand event analytics architecture. Feedback and suggestions welcome!
 
 ---
 
