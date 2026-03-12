@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Analytics Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        button {
+            margin: 10px 5px;
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+        }
+        button:hover { background: #0056b3; }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e8f5e9;
+            border-radius: 4px;
+            display: none;
+        }
+        .info {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Event Analytics Demo</h1>
+        
+        <div class="info">
+            <strong>Your User ID:</strong> <code id="userId"></code>
+            <br><strong>Project:</strong> demo_website
+        </div>
+
+        <h2>Test Actions</h2>
+        <p>Click buttons below to track events:</p>
+        
+        <button id="signup"> Sign Up</button>
+        <button id="login"> Login</button>
+        <button id="purchase"> Purchase</button>
+        <button id="share"> Share</button>
+        
+        <div id="status"></div>
+
+        <h3>Events Tracked:</h3>
+        <ul id="eventLog"></ul>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8001';
+        const PROJECT_ID = 'demo_website';
+        
+        // Generate unique user ID for this session
+        const USER_ID = 'user_' + Math.random().toString(36).substr(2, 9);
+        document.getElementById('userId').textContent = USER_ID;
+
+        // Track event function
+        async function track(eventName, properties = {}) {
+            try {
+                const response = await fetch(`${API_URL}/track`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        event_name: eventName,
+                        user_id: USER_ID,
+                        project_id: PROJECT_ID,
+                        properties: properties
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('✅ Tracked:', eventName, result);
+                
+                // Show status
+                const status = document.getElementById('status');
+                status.textContent = `✅ Event tracked: ${eventName}`;
+                status.style.display = 'block';
+                setTimeout(() => status.style.display = 'none', 2000);
+                
+                // Add to log
+                const log = document.getElementById('eventLog');
+                const li = document.createElement('li');
+                li.textContent = `${new Date().toLocaleTimeString()} - ${eventName} ${JSON.stringify(properties)}`;
+                log.insertBefore(li, log.firstChild);
+                
+            } catch (error) {
+                console.error('❌ Error tracking event:', error);
+                alert('Error: Make sure the API server is running on http://localhost:8001');
+            }
+        }
+
+        // Auto-track page view on load
+        track('page_view', {
+            page: window.location.pathname,
+            referrer: document.referrer
+        });
+
+        // Track button clicks
+        document.getElementById('signup').addEventListener('click', () => {
+            track('button_click', {button: 'signup', timestamp: Date.now()});
+        });
+
+        document.getElementById('login').addEventListener('click', () => {
+            track('button_click', {button: 'login', timestamp: Date.now()});
+        });
+
+        document.getElementById('purchase').addEventListener('click', () => {
+            track('purchase', {
+                button: 'purchase',
+                amount: 99.99,
+                currency: 'USD',
+                timestamp: Date.now()
+            });
+        });
+
+        document.getElementById('share').addEventListener('click', () => {
+            track('share', {
+                button: 'share',
+                platform: 'twitter',
+                timestamp: Date.now()
+            });
+        });
+    </script>
+</body>
+</html>
